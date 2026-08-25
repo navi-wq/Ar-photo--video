@@ -1,10 +1,10 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 
-<title>My AR Photo Video</title>
+<title>AR Photo Video</title>
 
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
@@ -15,7 +15,7 @@ html,body{
   width:100%;
   height:100%;
   overflow:hidden;
-  background:#000
+  background:#000;
 }
 
 #start{
@@ -27,7 +27,7 @@ html,body{
   padding:15px 24px;
   border:0;
   border-radius:12px;
-  font-size:18px
+  font-size:18px;
 }
 
 #msg{
@@ -39,7 +39,7 @@ html,body{
   text-align:center;
   color:white;
   font:15px Arial;
-  text-shadow:0 1px 4px #000
+  text-shadow:0 1px 4px #000;
 }
 </style>
 </head>
@@ -48,16 +48,19 @@ html,body{
 
 <button id="start">START AR</button>
 
-<div id="msg">Camera को target photo पर रखें</div>
+<div id="msg">
+Camera को target photo पर रखें
+</div>
 
 <a-scene
   mindar-image="imageTargetSrc: ./targets.mind;"
   color-space="sRGB"
-  renderer="colorManagement:true; physicallyCorrectLights:true; antialias:true"
+  renderer="colorManagement:true"
   vr-mode-ui="enabled:false"
   device-orientation-permission-ui="enabled:false">
 
   <a-assets>
+
     <video
       id="memoryVideo"
       src="./video.mp4"
@@ -65,8 +68,10 @@ html,body{
       loop
       playsinline
       webkit-playsinline
-      muted>
+      muted
+      crossorigin="anonymous">
     </video>
+
   </a-assets>
 
   <a-camera
@@ -74,13 +79,17 @@ html,body{
     look-controls="enabled:false">
   </a-camera>
 
-  <a-entity mindar-image-target="targetIndex:0">
+  <a-entity
+    id="target"
+    mindar-image-target="targetIndex:0">
 
     <a-video
+      id="videoPlane"
       src="#memoryVideo"
       position="0 0 0.01"
-      width="2.4"
-      height=1.35>
+      width="1"
+      height="0.424242"
+      material="shader: flat">
     </a-video>
 
   </a-entity>
@@ -89,29 +98,29 @@ html,body{
 
 <script>
 
-const target =
-  document.querySelector('[mindar-image-target]');
+const target = document.querySelector('#target');
 
-const video =
-  document.querySelector('#memoryVideo');
+const video = document.querySelector('#memoryVideo');
 
-const start =
-  document.querySelector('#start');
+const start = document.querySelector('#start');
 
-start.onclick = async () => {
+
+start.addEventListener('click', async () => {
 
   start.style.display = 'none';
 
   try {
-    await video.play();
-    video.pause();
-    video.currentTime = 0;
-  }
 
-  catch(e) {
-    console.log(e);
-  }
-};
+    await video.play();
+
+    video.pause();
+
+    video.currentTime = 0;
+
+  } catch(e) {}
+
+});
+
 
 target.addEventListener('targetFound', async () => {
 
@@ -119,14 +128,13 @@ target.addEventListener('targetFound', async () => {
     'Photo detected — video चल रही है';
 
   try {
-    await video.play();
-  }
 
-  catch(e) {
-    console.log(e);
-  }
+    await video.play();
+
+  } catch(e) {}
 
 });
+
 
 target.addEventListener('targetLost', () => {
 
