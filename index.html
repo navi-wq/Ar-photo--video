@@ -1,11 +1,10 @@
-<!doctype html>
+    <!doctype html>
 <html lang="en">
 
 <head>
 <meta charset="utf-8">
 
-<meta name="viewport"
-content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 
 <title>AR Photo Video</title>
 
@@ -53,10 +52,11 @@ html,body{
 
 <button id="start">START AR</button>
 
-<div id="msg">Camera को target photo पर रखें</div>
+<div id="msg">
+Camera को target photo पर रखें
+</div>
 
 <a-scene
-  id="arScene"
   mindar-image="imageTargetSrc: ./targets.mind;"
   color-space="sRGB"
   renderer="colorManagement:true"
@@ -102,144 +102,43 @@ html,body{
 
 <script>
 
-/* =========================
-   SUPABASE
-   ========================= */
+const target = document.querySelector('#target');
+const video = document.querySelector('#memoryVideo');
+const start = document.querySelector('#start');
 
-const SUPABASE_URL =
-"https://uoppiicvfhuukxmhajil.supabase.co";
+start.addEventListener('click', async () => {
 
-const SUPABASE_KEY =
-"sb_publishable_V_tmzVv_YiYURCwVCp9wMA_ZFP7-stm";
+  start.style.display = 'none';
 
-/* =========================
-   ELEMENTS
-   ========================= */
-
-const scene = document.querySelector("#arScene");
-const target = document.querySelector("#target");
-const video = document.querySelector("#memoryVideo");
-const start = document.querySelector("#start");
-const msg = document.querySelector("#msg");
-
-
-/* =========================
-   LOAD CUSTOMER 001
-   ========================= */
-
-async function loadCustomer(){
-
-  try{
-
-    const response = await fetch(
-      SUPABASE_URL +
-      "/rest/v1/ar_customers?select=target_file,video_file&limit=1",
-      {
-        headers:{
-          "apikey": SUPABASE_KEY,
-          "Authorization": "Bearer " + SUPABASE_KEY
-        }
-      }
-    );
-
-    if(!response.ok){
-      throw new Error("Database error " + response.status);
-    }
-
-    const data = await response.json();
-
-    if(!data.length){
-      throw new Error("Customer नहीं मिला");
-    }
-
-    const customer = data[0];
-
-    /* Database से video file name */
-    video.src = "./" + customer.video_file;
-    video.load();
-
-    /* Database से target file name */
-    scene.setAttribute(
-      "mindar-image",
-      "imageTargetSrc: ./" + customer.target_file + ";"
-    );
-
-    return true;
-
-  }catch(error){
-
-    console.error(error);
-
-    msg.textContent =
-      "Database error: " + error.message;
-
-    return false;
-  }
-}
-
-
-/* =========================
-   START AR
-   ========================= */
-
-start.addEventListener("click", async () => {
-
-  start.style.display = "none";
-
-  msg.textContent = "AR शुरू हो रहा है...";
-
-  const loaded = await loadCustomer();
-
-  if(!loaded){
-
-    start.style.display = "block";
-    return;
-  }
-
-  try{
+  try {
 
     await video.play();
+
     video.pause();
+
     video.currentTime = 0;
 
-  }catch(e){}
-
-  /*
-    IMPORTANT:
-    MindAR का normal A-Frame startup
-    इस्तेमाल हो रहा है।
-  */
-
-  msg.textContent =
-    "Camera को target photo पर रखें";
+  } catch(e) {}
 
 });
 
+target.addEventListener('targetFound', async () => {
 
-/* =========================
-   TARGET FOUND
-   ========================= */
+  document.querySelector('#msg').textContent =
+    'Photo detected — video चल रही है';
 
-target.addEventListener("targetFound", async () => {
+  try {
 
-  msg.textContent =
-    "Photo detected — video चल रही है";
-
-  try{
     await video.play();
-  }catch(e){}
+
+  } catch(e) {}
 
 });
 
+target.addEventListener('targetLost', () => {
 
-/* =========================
-   TARGET LOST
-   ========================= */
-
-target.addEventListener("targetLost", () => {
-
-  msg.textContent =
-    "Photo को camera के सामने रखें";
+  document.querySelector('#msg').textContent =
+    'Photo को camera के सामने रखें';
 
   video.pause();
 
