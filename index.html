@@ -53,11 +53,11 @@ html,body{
 
 <button id="start">START AR</button>
 
-<div id="msg">START AR दबाएँ</div>
+<div id="msg">Camera को target photo पर रखें</div>
 
 <a-scene
-  id="scene"
-  mindar-image="imageTargetSrc: ./targets.mind; autoStart: false;"
+  id="arScene"
+  mindar-image="imageTargetSrc: ./targets.mind;"
   color-space="sRGB"
   renderer="colorManagement:true"
   vr-mode-ui="enabled:false"
@@ -100,39 +100,34 @@ html,body{
 
 </a-scene>
 
-
 <script>
 
-/* ================================
-   SUPABASE DETAILS
-   ================================ */
+/* =========================
+   SUPABASE
+   ========================= */
 
 const SUPABASE_URL =
-"https://uoppiicvfhuukxmhajil.supabase.co
-";
+"https://uoppiicvfhuukxmhajil.supabase.co";
 
 const SUPABASE_KEY =
 "sb_publishable_V_tmzVv_YiYURCwVCp9wMA_ZFP7-stm";
 
-
-/* ================================
+/* =========================
    ELEMENTS
-   ================================ */
+   ========================= */
 
-const scene = document.querySelector("#scene");
+const scene = document.querySelector("#arScene");
 const target = document.querySelector("#target");
 const video = document.querySelector("#memoryVideo");
 const start = document.querySelector("#start");
 const msg = document.querySelector("#msg");
 
 
-/* ================================
-   LOAD CUSTOMER DATA
-   ================================ */
+/* =========================
+   LOAD CUSTOMER 001
+   ========================= */
 
 async function loadCustomer(){
-
-  msg.textContent = "Customer data लोड हो रहा है...";
 
   try{
 
@@ -148,33 +143,26 @@ async function loadCustomer(){
     );
 
     if(!response.ok){
-      throw new Error("Supabase error: " + response.status);
+      throw new Error("Database error " + response.status);
     }
 
     const data = await response.json();
 
-    if(!data || data.length === 0){
-      throw new Error("Customer data नहीं मिली");
+    if(!data.length){
+      throw new Error("Customer नहीं मिला");
     }
 
     const customer = data[0];
 
-    const targetFile = customer.target_file;
-    const videoFile = customer.video_file;
-
-    /* Set target file */
-
-    scene.setAttribute(
-      "mindar-image",
-      "imageTargetSrc: ./" + targetFile + "; autoStart: false;"
-    );
-
-    /* Set video file */
-
-    video.src = "./" + videoFile;
+    /* Database से video file name */
+    video.src = "./" + customer.video_file;
     video.load();
 
-    msg.textContent = "Customer 001 तैयार है";
+    /* Database से target file name */
+    scene.setAttribute(
+      "mindar-image",
+      "imageTargetSrc: ./" + customer.target_file + ";"
+    );
 
     return true;
 
@@ -183,24 +171,27 @@ async function loadCustomer(){
     console.error(error);
 
     msg.textContent =
-      "Database से data नहीं मिला: " + error.message;
+      "Database error: " + error.message;
 
     return false;
   }
 }
 
 
-/* ================================
+/* =========================
    START AR
-   ================================ */
+   ========================= */
 
 start.addEventListener("click", async () => {
 
   start.style.display = "none";
 
+  msg.textContent = "AR शुरू हो रहा है...";
+
   const loaded = await loadCustomer();
 
   if(!loaded){
+
     start.style.display = "block";
     return;
   }
@@ -213,29 +204,21 @@ start.addEventListener("click", async () => {
 
   }catch(e){}
 
-  msg.textContent = "Camera शुरू हो रहा है...";
+  /*
+    IMPORTANT:
+    MindAR का normal A-Frame startup
+    इस्तेमाल हो रहा है।
+  */
 
-  try{
-
-    const mindarSystem =
-      scene.systems["mindar-image-system"];
-
-    await mindarSystem.start();
-
-  }catch(error){
-
-    console.error(error);
-
-    msg.textContent =
-      "AR start नहीं हुआ: " + error.message;
-  }
+  msg.textContent =
+    "Camera को target photo पर रखें";
 
 });
 
 
-/* ================================
+/* =========================
    TARGET FOUND
-   ================================ */
+   ========================= */
 
 target.addEventListener("targetFound", async () => {
 
@@ -249,9 +232,9 @@ target.addEventListener("targetFound", async () => {
 });
 
 
-/* ================================
+/* =========================
    TARGET LOST
-   ================================ */
+   ========================= */
 
 target.addEventListener("targetLost", () => {
 
